@@ -101,6 +101,8 @@ Get all types of sensor data for a range of data. Default returns the most recen
 
 Optionally return up to 500 within a range of timestamps.
 
+`https://bhs.prangel.workers.dev/v1/sensor/1102921932/data`
+
 ```json 
 [
 	{
@@ -146,6 +148,8 @@ Optionally return up to 500 within a range of timestamps.
 Get __one__ type of sensor data for a range of data. Default returns the most recent 500 entries. 
 
 Optionally return up to 500 within a range of timestamps.
+
+`https://bhs.prangel.workers.dev/v1/sensor/1102921932/data/181`
 
 ```json 
 [
