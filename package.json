@@ -36,6 +36,7 @@
 	},
 	"dependencies": {
 		"@neondatabase/serverless": "^0.1.13",
+		"date-fns": "^2.29.3",
 		"hono": "^2.5.4"
 	}
 }
