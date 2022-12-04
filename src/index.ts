@@ -73,7 +73,6 @@ v1.get("/buildings", async (ctx) => {
 });
 
 v1.get("/building/:building/type/:type", async (ctx) => {
-
 	const building = ctx.req.param("building").toUpperCase();
 	const type = ctx.req.param("type");
 	const date = ctx.req.query("date");
@@ -91,7 +90,6 @@ v1.get("/building/:building/type/:type", async (ctx) => {
 });
 
 v1.get("/building/:building/type/:type/max", async (ctx) => {
-
 	const building = ctx.req.param("building").toUpperCase();
 	const type = ctx.req.param("type");
 	const date = ctx.req.query("date");
@@ -111,18 +109,6 @@ v1.get("/building/:building/type/:type/max", async (ctx) => {
 	});
 });
 
-v1.get("/building/:building/sensors", async (ctx) => {
-	const client = new Client(ctx.env.DATABASE_URL);
-	await client.connect();
-	const { rows } = await client.query(
-		"SELECT * from sensors WHERE upper(building) LIKE $1 ORDER BY room",
-		[ctx.req.param("building").toUpperCase()]
-	);
-	await client.end();
-
-	return ctx.json(rows);
-});
-
 v1.get("/sensor/:mac", async (ctx) => {
 	const client = new Client(ctx.env.DATABASE_URL);
 	await client.connect();
@@ -134,9 +120,13 @@ v1.get("/sensor/:mac", async (ctx) => {
 
 	return ctx.json(rows);
 });
-v1.get("/sensor/:mac/data", async (ctx) => {
+
+const tsRegex = new RegExp(/[0-9]{13}/);
+
+v1.get("/sensor/:mac/data/:type", async (ctx) => {
 	const client = new Client(ctx.env.DATABASE_URL);
 	await client.connect();
+	const type = ctx.req.param("type");
 	const range = ctx.req.query("range");
 	let rangeQuery = "";
 	if (range && range.length >= 13) {
@@ -148,38 +138,13 @@ v1.get("/sensor/:mac/data", async (ctx) => {
 			rangeQuery += ` AND timestamp < ${end} `;
 		}
 	}
-
-	const query = `SELECT * from data WHERE mac = $1 ${rangeQuery} ORDER BY timestamp DESC LIMIT 200`;
+	const typeQuery = type ? ` AND type = ${type} ` : "";
+	const query = `SELECT * from data WHERE mac = $1 ${typeQuery} ${rangeQuery} ORDER BY timestamp DESC LIMIT 200`;
 	const { rows } = await client.query(query, [ctx.req.param("mac")]);
 	await client.end();
 
 	return ctx.json(rows);
 });
-
-const tsRegex = new RegExp(/[0-9]{13}/);
-
-// v1.get("/sensor/:mac/data/:type", async (ctx) => {
-// 	const client = new Client(ctx.env.DATABASE_URL);
-// 	await client.connect();
-// 	const type = ctx.req.param("type");
-// 	const range = ctx.req.query("range");
-// 	let rangeQuery = "";
-// 	if (range && range.length >= 13) {
-// 		const [start, end] = range.split("-");
-// 		if (tsRegex.test(start)) {
-// 			rangeQuery += ` AND timestamp > ${start} `;
-// 		}
-// 		if (end && tsRegex.test(start) && tsRegex.test(end)) {
-// 			rangeQuery += ` AND timestamp < ${end} `;
-// 		}
-// 	}
-// 	const typeQuery = type ? ` AND type = ${type} ` : "";
-// 	const query = `SELECT * from data WHERE mac = $1 ${typeQuery} ${rangeQuery} ORDER BY timestamp DESC LIMIT 200`;
-// 	const { rows } = await client.query(query, [ctx.req.param("mac")]);
-// 	await client.end();
-
-// 	return ctx.json(rows);
-// });
 
 v1.get("/sensor/type/:type", async (ctx) => {
 	const client = new Client(ctx.env.DATABASE_URL);
